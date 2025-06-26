@@ -1,0 +1,10 @@
+cradle:
+  stack:
+    - path: "./src"
+      component: "receipt-tracker:lib"
+
+    - path: "./app/Main.hs"
+      component: "receipt-tracker:exe:receipt-tracker-exe"
+
+    - path: "./test"
+      component: "receipt-tracker:test:receipt-tracker-test"
