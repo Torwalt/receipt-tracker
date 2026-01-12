@@ -1,20 +1,15 @@
 module Main (main) where
 
-import Control.Exception
-import Path
-import Receipt (ReceiptComponent (RCCompany), parse)
+import Control.Exception (IOException, try)
+import Receipt (parse)
 
 main :: IO ()
 main = do
-  let ePath = receiptDirPath
-  path <- case ePath of
-    Left err -> throwIO err
-    Right p -> return p
-  contents <- readFile $ toFilePath path
-  let components = parse contents
-  case components of
-    RCCompany c -> print c
-    _ -> return ()
+  eContents <- readFileE "receipts/receipt.txt"
+  case eContents of
+    Left err -> putStrLn ("Failed to read receipt: " ++ show err)
+    Right contents ->
+        mapM_ print (parse contents)
 
-receiptDirPath :: Either SomeException (Path Rel File)
-receiptDirPath = parseRelFile "receipts/receipt.txt"
+readFileE :: FilePath -> IO (Either IOException String)
+readFileE fp = try (readFile fp)
