@@ -9,7 +9,7 @@ main = do
   case eContents of
     Left err -> putStrLn ("Failed to read receipt: " ++ show err)
     Right contents ->
-        mapM_ print (parse contents)
+      mapM_ print (parse contents)
 
 readFileE :: FilePath -> IO (Either IOException String)
 readFileE fp = try (readFile fp)

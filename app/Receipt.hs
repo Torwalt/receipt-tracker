@@ -1,15 +1,12 @@
 module Receipt
   ( ReceiptComponent (..),
-    parseNoop,
     parse,
-    Company,
   )
 where
 
+import Data.Char (isSpace)
+import Data.List (dropWhileEnd)
 import GHC.TypeLits (Natural)
-
-parseNoop :: String -> ReceiptComponent
-parseNoop x = RCCompany (Company {compName = "REWE Markt K. Feibig oHG", compAddress = "Auerbacher Str. 10-14 14193 Berlin"})
 
 data Company = Company {compName :: String, compAddress :: String} deriving (Show)
 
@@ -25,9 +22,22 @@ data ReceiptComponent
   | RCSum GivenSum
   deriving (Show)
 
-parse :: String -> [ReceiptComponent]
-parse = pure . RCCompany . parseCompany . lines
+type Step a = [String] -> (a, [String])
 
-parseCompany :: [String] -> Company
-parseCompany (name : a1 : a2 : _ ) = Company name (unwords [a1, a2])
-parseCompany _ = Company {compName = "", compAddress = ""}
+type ParseStep = Step [ReceiptComponent]
+
+parse :: String -> [ReceiptComponent]
+parse s = runSteps [parseCompanyStep] (map trim $ lines s)
+
+runSteps :: [ParseStep] -> [String] -> [ReceiptComponent]
+runSteps [] _ = []
+runSteps (s : ss) ls =
+  let (comps, ls') = s ls
+   in comps ++ runSteps ss ls'
+
+parseCompanyStep :: ParseStep
+parseCompanyStep (name : a1 : a2 : rest) = ([RCCompany (Company name (unwords [a1, a2]))], rest)
+parseCompanyStep ls = ([RCCompany (Company "" "")], ls)
+
+trim :: String -> String
+trim = dropWhileEnd isSpace . dropWhile isSpace
